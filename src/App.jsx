@@ -90,10 +90,16 @@ export default function App() {
 
   const fetchRecords = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('interview_records')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    let query = supabase.from('interview_records').select('*').order('created_at', { ascending: false });
+
+    // Kung dili Admin, ang ilahang record ra ang makita para sa privacy
+    if (user?.email !== 'lorvyesguera@gmail.com' && user?.email !== 'hrmolguasuncion@gmail.com') {
+      query = query.eq('interviewer_id', user?.email || formData.interviewerName);
+    }
+
+    const { data, error } = await query;
     if (!error && data) setRecords(data);
     setLoading(false);
   };
@@ -145,11 +151,15 @@ export default function App() {
 
     setSubmitting(true);
     setShowSuccess(false);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { error } = await supabase.from('interview_records').insert([
       {
         applicant_name: normalizeStoredText(formData.applicantName),
         position_applied: normalizeStoredText(formData.position),
         interviewer_name: normalizeStoredText(formData.interviewerName),
+        interviewer_id: user?.email || formData.interviewerName,
         interview_date: formData.date,
         scores: scores,
         final_rating_score: parseFloat(finalScore)
@@ -217,17 +227,17 @@ export default function App() {
   if (activeTab === 'landing') {
     return (
       <div
-  className="min-h-screen flex flex-col justify-between text-white relative p-6 page-enter overflow-hidden"
-  style={{
-    backgroundImage: `
-      linear-gradient(rgba(15,23,42,0.78), rgba(15,23,42,0.78)),
-      url('/municipal hall.jpg')
-    `,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat'
-  }}
->
+        className="min-h-screen flex flex-col justify-between text-white relative p-6 page-enter overflow-hidden"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(15,23,42,0.78), rgba(15,23,42,0.78)),
+            url('/municipal hall.jpg')
+          `,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="flex items-center gap-3 stagger-item" style={{ '--stagger-index': 0 }}>
           <div className="p-2 bg-blue-600 rounded-lg shadow-md">
             <BarChart3 className="w-6 h-6 text-white" />
@@ -690,51 +700,54 @@ export default function App() {
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <RippleButton
                   variant="light"
-                  onClick={() => setAvatarUrlInput('/hrmo-logo.png')}
-                  className={`p-3 border rounded-xl flex flex-col items-center gap-2 ${
-                    avatarUrlInput === '/hrmo-logo.png' ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-600' : 'border-slate-200 hover:bg-slate-50'
-                  }`}
+                  onClick={() => setAvatarUrlInput('/lgu-seal.png')}
+                  className={`p-3 border rounded-lg flex flex-col items-center gap-2 hover:bg-slate-50 ${avatarUrlInput === '/lgu-seal.png' ? 'border-blue-600 bg-blue-50/50' : 'border-slate-200'}`}
                 >
-                  <img src="/hrmo-logo.png" alt="HRMO Logo" className="w-12 h-12 object-cover rounded-full" />
-                  <span className="text-xs font-medium text-slate-700">HRMO Logo</span>
+                  <img src="/lgu-seal.png" alt="LGU Seal" className="w-10 h-10 object-contain" />
+                  <span className="text-[11px] font-medium text-slate-700">LGU Seal</span>
                 </RippleButton>
-
                 <RippleButton
                   variant="light"
-                  onClick={() => setAvatarUrlInput('/lgu-seal.png')}
-                  className={`p-3 border rounded-xl flex flex-col items-center gap-2 ${
-                    avatarUrlInput === '/lgu-seal.png' ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-600' : 'border-slate-200 hover:bg-slate-50'
-                  }`}
+                  onClick={() => setAvatarUrlInput('/hrmo-logo.png')}
+                  className={`p-3 border rounded-lg flex flex-col items-center gap-2 hover:bg-slate-50 ${avatarUrlInput === '/hrmo-logo.png' ? 'border-blue-600 bg-blue-50/50' : 'border-slate-200'}`}
                 >
-                  <img src="/lgu-seal.png" alt="LGU Seal" className="w-12 h-12 object-contain" />
-                  <span className="text-xs font-medium text-slate-700">LGU Seal</span>
+                  <img src="/hrmo-logo.png" alt="HRMO Logo" className="w-10 h-10 object-contain rounded-full" />
+                  <span className="text-[11px] font-medium text-slate-700">HRMO Logo</span>
                 </RippleButton>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-slate-600">Or Custom Image URL:</label>
+              <input
+                type="text"
+                placeholder="https://example.com/avatar.png"
+                value={avatarUrlInput}
+                onChange={(e) => setAvatarUrlInput(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
               <RippleButton
                 variant="light"
                 onClick={() => setEditingAvatarUser(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-100"
               >
                 Cancel
               </RippleButton>
               <RippleButton
                 onClick={handleSaveAvatar}
-                disabled={savingAvatar || !avatarUrlInput}
-                className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 text-white rounded-lg shadow-xs flex items-center gap-1.5"
+                disabled={savingAvatar}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-500 shadow-sm flex items-center gap-2"
               >
                 {savingAvatar ? (
                   <>
-                    <Spinner variant="dark" className="!border-white/35 !border-t-white w-3.5 h-3.5" />
-                    Saving...
+                    <Spinner />
+                    <span>Saving...</span>
                   </>
                 ) : (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    Apply Logo
-                  </>
+                  'Save Changes'
                 )}
               </RippleButton>
             </div>
