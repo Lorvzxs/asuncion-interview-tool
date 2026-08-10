@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 
-const POSITIONS_STORAGE_KEY = 'bei_saved_positions';
+const POSITIONS_STORAGE_KEY = 'bei_saved_positions_v2';
 
 const defaultPositions = [
   'SENIOR ADMINISTRATIVE ASSISTANT I',
   'ADMINISTRATIVE AIDE III',
+  'ADMINISTRATIVE AIDE II',
+  'ADMINISTRATIVE AIDE I',
+  'ADMINISTRATIVE AIDE',
+  'ADMINISTRATIVE ASSISTANT',
+  'ADMINISTRATIVE ASSISTANT I',
+  'ADMINISTRATIVE ASSISTANT II',
+  'ADMINISTRATIVE ASSISTANT III',
+  'ADMINISTRATIVE ASSISTANT IV'
 ];
 
 export default function SavedPositionInput({ value, onChange, required }) {
@@ -15,7 +23,13 @@ export default function SavedPositionInput({ value, onChange, required }) {
     const saved = localStorage.getItem(POSITIONS_STORAGE_KEY);
     if (saved) {
       try {
-        setPositions(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPositions(parsed);
+        } else {
+          setPositions(defaultPositions);
+          localStorage.setItem(POSITIONS_STORAGE_KEY, JSON.stringify(defaultPositions));
+        }
       } catch (e) {
         setPositions(defaultPositions);
       }
