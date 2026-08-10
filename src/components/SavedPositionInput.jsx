@@ -50,10 +50,8 @@ export default function SavedPositionInput({ value, onChange, required }) {
   };
 
   return (
-    <div className="relative">
-      <label className="block text-[11px] font-semibold text-slate-500 uppercase mb-1">
-        Position Applied For
-      </label>
+    <div className="floating-field">
+      <label className="floating-label is-active">Position Applied For</label>
       
       {!isCustom ? (
         <div className="flex gap-2">
@@ -61,7 +59,7 @@ export default function SavedPositionInput({ value, onChange, required }) {
             value={value}
             onChange={handleSelectChange}
             required={required}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 ui-transition"
+            className="floating-input floating-input-position w-full bg-white cursor-pointer"
           >
             <option value="">Select Position...</option>
             {positions.map((pos, idx) => (
@@ -80,13 +78,13 @@ export default function SavedPositionInput({ value, onChange, required }) {
             value={value}
             onChange={(e) => onChange(e.target.value.toUpperCase())}
             required={required}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="floating-input floating-input-position w-full"
             autoFocus
           />
           <button
             type="button"
             onClick={() => setIsCustom(false)}
-            className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg"
+            className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg shrink-0"
           >
             Cancel
           </button>
